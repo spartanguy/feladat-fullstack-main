@@ -40,6 +40,20 @@
 <script setup>
 import KeyIcon from '@/components/icons/KeyIcon.vue';
 import UserIcon from '@/components/icons/UserIcon.vue';
+import axios from 'axios';
+import { ref } from 'vue';
+
+const responseData = ref(null);
+const error = ref(null);
+
+// Az API endpoint URL
+axios.post('http://localhost:8680/auth/login', {name: 'Admin', password: 'admin'}).then(response => {
+      responseData.value = response.data;
+    })
+    .catch(err => {
+      error.value = err;
+    });
+
 </script>
 
 <style scoped>

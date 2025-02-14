@@ -92,7 +92,7 @@ CREATE TABLE "public"."users" (
 -- ----------------------------
 -- Records of users
 -- ----------------------------
-INSERT INTO "public"."users" VALUES (1, 'Admin', 'admin@admin.hu', 'admin', 'f');
+INSERT INTO "public"."users" VALUES (1, 'Admin', 'admin@admin.hu', '21337ddaa187e2896e19a74f2e8f4c39', 'f');
 INSERT INTO "public"."users" VALUES (2, 'Joshua Brown', 'brownjoshu@gmail.com', '3531138261f9b808d3aae83aad499a80', 't');
 INSERT INTO "public"."users" VALUES (3, 'Ray Garcia', 'raygar@gmail.com', '19985425045a102b3f2774121aed302a', 't');
 INSERT INTO "public"."users" VALUES (4, 'Anna Harris', 'harrisanna7@hotmail.com', 'dd16e29a89c257b16667496eab95e5c6', 'f');
