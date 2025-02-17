@@ -14,11 +14,6 @@ class AuthController extends BaseController
         $name = $data->name;
         $password = $data->password;
 
-        /*$name = "Admin";
-        $password = "admin";*/
-        error_log($name);
-        error_log($password);
-
         $db = $this->getDI()->get('db');
         $result = $db->query(
             "SELECT * FROM users WHERE name = :name",

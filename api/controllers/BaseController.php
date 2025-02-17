@@ -5,6 +5,21 @@ use Phalcon\Http\Response;
 
 class BaseController extends Controller
 {
+    public function initialize()
+    {
+        $this->response->setHeader('Access-Control-Allow-Origin', 'http://localhost:8630');
+        $this->response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        $this->response->setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+        $this->response->setHeader('Access-Control-Allow-Credentials', 'true');
+    
+        // Kezeld a preflight OPTIONS kéréseket
+        if ($this->request->isOptions()) {
+            $this->response->setStatusCode(200, "OK");
+            $this->response->send();
+            exit;
+        }
+    }
+
     protected function routeGuard($requiredPermission)
     {
         $token = $this->request->getHeader('Authorization');
@@ -17,8 +32,6 @@ class BaseController extends Controller
         }
 
         $db = $this->getDI()->get('db');
-        $res = $db->query("SELECT * FROM user_sessions");
-        var_dump($res->fetch());
         $result = $db->query(
             "SELECT * FROM user_sessions WHERE token = :token AND expires_at > :now",
             [
