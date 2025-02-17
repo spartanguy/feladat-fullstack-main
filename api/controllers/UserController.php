@@ -9,7 +9,16 @@ class UserController extends BaseController
     {
         if($this->routeGuard('user.read')){
             $db = $this->getDI()->get('db');
-            $result = $db->query("SELECT * FROM users");
+            $result = $db->query("SELECT 
+                    users.id, 
+                    users.name, 
+                    users.email, 
+                    COALESCE(STRING_AGG(permissions.name, ', '), 'Nincs jogosultság') AS permissions
+                FROM users
+                LEFT JOIN user_permissions ON users.id = user_permissions.user_id
+                LEFT JOIN permissions ON user_permissions.permission_id = permissions.id
+                GROUP BY users.id, users.name, users.email
+                ORDER BY users.id;");
             $users = $result->fetchAll();
     
             return $this->response->setJsonContent($users);
@@ -19,9 +28,6 @@ class UserController extends BaseController
     public function createAction()
     {
         if($this->routeGuard('user.write')){
-            /*$name = $this->request->getPost('name');
-            $password = $this->security->hash($this->request->getPost('password'));
-            $email = $this->request->getPost('email');*/
             $data = $this->request->getJsonRawBody();
             $name = $data->name;
             $password = $this->security->hash($data->password);
@@ -42,7 +48,7 @@ class UserController extends BaseController
 
     public function readAction($id)
     {
-        if($this->routeGuard('read_user')){
+        if($this->routeGuard('user.read')){
             $db = $this->getDI()->get('db');
             $result = $db->query("SELECT * FROM users WHERE id = :id", ['id' => $id]);
             $user = $result->fetch();
@@ -57,7 +63,7 @@ class UserController extends BaseController
 
     public function updateAction($id)
     {
-        if($this->routeGuard('update_user')){
+        if($this->routeGuard('user.write')){
             $name = $this->request->getPut('name');
             $email = $this->request->getPut('email');
             $password = $this->request->getPut('password');
@@ -78,7 +84,7 @@ class UserController extends BaseController
 
     public function deleteAction($id)
     {
-        if($this->routeGuard('delete_user')) { 
+        if($this->routeGuard('user.write')) { 
             $db = $this->getDI()->get('db');
             $db->execute("DELETE FROM users WHERE id = :id", ['id' => $id]);
             return $this->response->setJsonContent(['message' => 'User deleted']);

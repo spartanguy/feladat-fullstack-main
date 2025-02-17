@@ -9,15 +9,31 @@ const router = createRouter({
       name: 'home',
       component: LoginView,
     },
-    /*{
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue'),
-    },*/
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: () => import('../views/DashboardView.vue'),
+    },
   ],
 })
+
+/*router.beforeEach( async (to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    try {
+      const sessionData = await getSessionData(); 
+      const isAuthenticated = sessionData && sessionData.userId !== undefined; 
+      if (!isAuthenticated) {
+        next({ name: 'Login' });
+      } else {
+        next(); 
+      }
+    } catch (error) {
+      console.error('Hiba történt a session ellenőrzése közben:', error);
+      next({ name: 'Login' }); 
+    }
+  } else {
+    next(); 
+  }
+});*/
 
 export default router
