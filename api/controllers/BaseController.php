@@ -12,7 +12,6 @@ class BaseController extends Controller
         $this->response->setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
         $this->response->setHeader('Access-Control-Allow-Credentials', 'true');
     
-        // Kezeld a preflight OPTIONS kéréseket
         if ($this->request->isOptions()) {
             $this->response->setStatusCode(200, "OK");
             $this->response->send();
