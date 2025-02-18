@@ -3,11 +3,16 @@
     <div class="min-h-screen bg-gray-100">
       <nav class="bg-gray-800 text-white py-6 px-1 md:px-6 lg:px-12 flex justify-between">
           <h1 class="text-2xl font-bold">Felhasználók Kezelése</h1>
-          <Button intent="danger">Kijelentkezés</Button>
+          <Button @click="onLogout" intent="danger">Kijelentkezés</Button>
       </nav>
-      
+      <Modal :isOpen="modalOpen" title="Felhasználó szerkesztése" @close="closeModal" @save="saveUser"/>
       <div class="px-1 md:px-6 lg:px-12 pt-8">
-        <Search_form @search="handleSearch" />
+        <div class="flex justify-between">
+          <Search_form class="w-5/8" @search="handleSearch"/>
+          <div class="ml-2 my-auto">
+            <Button @click="openModal" intent="secondary">+ Új Felhasználó</Button>
+          </div>
+        </div>
         <div class="overflow-x-auto max-h-[550px] overflow-y-auto">
           <table class="shadow min-w-full">
             <thead>
@@ -36,16 +41,17 @@
   </body>
 </template>
 
-
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
 import Pagination from '@/components/pagination.vue';
 import Search_form from '@/components/search_form.vue';
 import Button from '@/components/button.vue';
+import Modal from '@/components/modal.vue';
+import { fetchUsers, logout } from '@/services/api';
+import router from '@/router';
 
-onMounted(() => {
-    fetchUsers();
+onMounted(async () => {
+    users.value = await fetchUsers(localStorage.getItem('authToken'));  
 });
 
 const users = ref([]);
@@ -63,18 +69,6 @@ const filteredUsers = computed(() => {
   );
 });
 
-const fetchUsers = async () => {
-  try {
-    const token = localStorage.getItem('authToken');
-    const response = await axios.get('http://localhost:8680/user/list', {
-      headers: { Authorization: token }
-    });
-    users.value = response.data;   
-  } catch (error) {
-    console.error('Hiba a felhasználók lekérésekor:', error);
-  }
-};
-
 //pagination
 const onCp = (cp) => {
     currentPage.value = cp;
@@ -91,28 +85,26 @@ const paginatedItems = computed(() => {
   const end = start + itemsPerPage.value;
   return filteredUsers.value.slice(start, end);
 });
+
+const modalOpen = ref(false);
+
+const openModal = () => {
+  modalOpen.value = true;
+};
+
+const closeModal = () => {
+  modalOpen.value = false;
+};
+
+const onLogout = () => {
+  logout(localStorage.getItem('authToken'));
+  router.push("/");
+}
 </script>
 
 <style scoped>
-.rows {
-  border-bottom: 1px solid lightgrey;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.rows:hover {
-  background-color: #f0f0f0; 
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); 
-}
-
-.cell {
-  height: 55px;    
-  vertical-align: middle;
-  padding: 12px;
-}
-
 table {
   width: 100%;  
   min-width: 800px; 
 }
-
 </style>

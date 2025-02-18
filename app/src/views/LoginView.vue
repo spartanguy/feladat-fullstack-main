@@ -29,7 +29,7 @@
           </span>
         </div>
 
-        <button @click="login" class="p-13 bg-purple-800 text-white py-3 rounded-full shadow-lg hover:bg-purple-900 transition font-bold">
+        <button @click="onLogin" class="p-13 bg-purple-800 text-white py-3 rounded-full shadow-lg hover:bg-purple-900 transition font-bold">
           Bejelentkezés
         </button>
       </div>
@@ -41,22 +41,17 @@
 import KeyIcon from '@/components/icons/KeyIcon.vue';
 import UserIcon from '@/components/icons/UserIcon.vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { login } from '@/services/api';
 import { ref } from 'vue';
 
 const name = ref('');
 const pass = ref('');
 const router = useRouter();
 
-const login = () => {
-axios.post('http://localhost:8680/auth/login', { name: name.value, password: pass.value })
-  .then(response => {
-    localStorage.setItem("authToken", response.data.token);
-    router.push("/dashboard");
-  })
-  .catch(err => {
-    console.error("Hiba a bejelentkezésnél:", err);
-  });
+const onLogin = async () => {
+  const response = await login(name.value,pass.value);
+  localStorage.setItem("authToken", response.token);
+  router.push("/dashboard");
 };
 </script>
 

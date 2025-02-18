@@ -8,8 +8,6 @@ class AuthController extends BaseController
 {
     public function loginAction()
     {
-        /*$name = $this->request->getPost('name');
-        $password = $this->request->getPost('password');*/
         $data = $this->request->getJsonRawBody();
         $name = $data->name;
         $password = $data->password;
@@ -33,7 +31,6 @@ class AuthController extends BaseController
                     'expires_at' => $expiresAt,
                 ]
             );
-
             return $this->response->setJsonContent(['token' => $token]);
         } else {
             return $this->response->setStatusCode(401, 'Unauthorized')
@@ -44,17 +41,14 @@ class AuthController extends BaseController
     public function logoutAction()
     {
         $token = $this->request->getHeader('Authorization');
-
         if ($token) {
             $db = $this->getDI()->get('db');
             $db->execute(
                 "DELETE FROM user_sessions WHERE token = :token",
                 ['token' => $token]
             );
-
             return $this->response->setJsonContent(['message' => 'Logged out']);
         }
-
         return $this->response->setStatusCode(400, 'Bad Request')
             ->setJsonContent(['error' => 'Invalid token']);
     }
