@@ -37,3 +37,27 @@ export const login = async (name, pass) => {
     throw new Error('Hiba a felhasználó beléptetésekor:', error);
   }
 };
+
+export const createUser = async (name, pass, email, token) => {
+  try {
+    const response = await apiClient.post('/user/create', { name: name, password: pass, email: email}, 
+      {headers: { Authorization: token }},
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error('Hiba a felhasználó létrehozásakor:', error);
+  }
+};
+
+export const deleteUser = async (id, token) => {
+  try {
+    console.log(token);
+    
+    const response = await apiClient.delete(`/user/delete/${id}`, {
+      headers: { Authorization: token }
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Hiba a felhasználó törlésekor', error);
+  }
+};

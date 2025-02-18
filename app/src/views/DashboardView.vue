@@ -5,7 +5,8 @@
           <h1 class="text-2xl font-bold">Felhasználók Kezelése</h1>
           <Button @click="onLogout" intent="danger">Kijelentkezés</Button>
       </nav>
-      <Modal :isOpen="modalOpen" title="Felhasználó szerkesztése" @close="closeModal" @save="saveUser"/>
+      <NewModal :isOpen="modalOpen" @close="closeModal"/>
+      <EditModal :data="currentUser" :isOpen="ModalOpen" @close="CloseModal"/>
       <div class="px-1 md:px-6 lg:px-12 pt-8">
         <div class="flex justify-between">
           <Search_form class="w-5/8" @search="handleSearch"/>
@@ -46,7 +47,8 @@ import { ref, computed, onMounted } from 'vue';
 import Pagination from '@/components/pagination.vue';
 import Search_form from '@/components/search_form.vue';
 import Button from '@/components/button.vue';
-import Modal from '@/components/modal.vue';
+import NewModal from '@/components/newModal.vue';
+import EditModal from '@/components/editModal.vue';
 import { fetchUsers, logout } from '@/services/api';
 import router from '@/router';
 
@@ -86,7 +88,10 @@ const paginatedItems = computed(() => {
   return filteredUsers.value.slice(start, end);
 });
 
+//modals
 const modalOpen = ref(false);
+const ModalOpen = ref(false);
+const currentUser = ref(undefined);
 
 const openModal = () => {
   modalOpen.value = true;
@@ -94,6 +99,15 @@ const openModal = () => {
 
 const closeModal = () => {
   modalOpen.value = false;
+};
+
+const editUser = (currUser) => {
+  currentUser.value = currUser;
+  ModalOpen.value = true;
+}
+
+const CloseModal = () => {
+  ModalOpen.value = false;
 };
 
 const onLogout = () => {

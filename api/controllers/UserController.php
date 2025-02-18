@@ -64,9 +64,11 @@ class UserController extends BaseController
     public function updateAction($id)
     {
         if($this->routeGuard('user.write')){
-            $name = $this->request->getPut('name');
-            $email = $this->request->getPut('email');
-            $password = $this->request->getPut('password');
+
+            $data = $this->request->getJsonRawBody();
+            $name = $data->name;
+            $password = $this->security->hash($data->password);
+            $email = $data->email;
 
             $db = $this->getDI()->get('db');
             $db->execute(
@@ -74,7 +76,7 @@ class UserController extends BaseController
                 [
                     'name' => $name,
                     'email'    => $email,
-                    'password' => $this->security->hash($password),
+                    'password' => $password,
                     'id'       => $id,
                 ]
             );
