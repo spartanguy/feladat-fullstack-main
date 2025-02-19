@@ -88,7 +88,7 @@ class UserController extends BaseController
     {
         if($this->routeGuard('user.write')) { 
             $db = $this->getDI()->get('db');
-            $db->execute("DELETE FROM users WHERE id = :id", ['id' => $id]);
+            $db->execute("UPDATE users SET deleted = :true WHERE id = :id", ['id' => $id, 'true' => true]);
             return $this->response->setJsonContent(['message' => 'User deleted']);
         }
     }

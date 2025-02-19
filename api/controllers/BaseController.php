@@ -24,9 +24,10 @@ class BaseController extends Controller
         $token = $this->request->getHeader('Authorization');
 
         if (!$token) {
-            error_log("1");
-            $this->response->setStatusCode(401, 'Unauthorized')
-                ->setJsonContent(['error' => 'Token is missing']);
+            $this->dispatcher->forward([
+                'controller' => 'error',
+                'action' => 'unauthorized'
+            ]);
             return false; 
         }
 
@@ -41,12 +42,13 @@ class BaseController extends Controller
         $session = $result->fetch();
 
         if (!$session) {
-            error_log("2");
-            $this->response->setStatusCode(401, 'Unauthorized')
-                ->setJsonContent(['error' => 'Token is missing']);
+            $this->dispatcher->forward([
+                'controller' => 'error',
+                'action' => 'unauthorized'
+            ]);
             return false; 
         }
-
+        
         $result = $db->query(
             "SELECT * FROM users WHERE id = :user_id",
             ['user_id' => $session->user_id]
@@ -54,10 +56,11 @@ class BaseController extends Controller
         $user = $result->fetch();
 
         if (!$user || !$this->hasPermission($user, $requiredPermission)) {
-            error_log("3");
-            $this->response->setStatusCode(403, 'Forbidden')
-                ->setJsonContent(['error' => 'Insufficient permissions']);
-            return false;
+            $this->dispatcher->forward([
+                'controller' => 'error',
+                'action' => 'forbidden'
+            ]);
+            return false; 
         }
         return true;
     }

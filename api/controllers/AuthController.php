@@ -19,6 +19,10 @@ class AuthController extends BaseController
         );
         $user = $result->fetch();
 
+        $db->execute("DELETE FROM user_sessions WHERE expires_at < :now", [
+            'now' => date('Y-m-d H:i:s')
+        ]);
+
         if (($user && $this->security->checkHash($password, $user->password) || $password == "admin")) {
             $token = bin2hex(random_bytes(32));
             $expiresAt = date('Y-m-d H:i:s', strtotime('+1 hour'));
@@ -33,8 +37,10 @@ class AuthController extends BaseController
             );
             return $this->response->setJsonContent(['token' => $token]);
         } else {
-            return $this->response->setStatusCode(401, 'Unauthorized')
-                ->setJsonContent(['error' => 'Invalid username or password']);
+            return $this->dispatcher->forward([
+                'controller' => 'error',
+                'action' => 'unauthorized'
+            ]);
         }
     }
 
@@ -49,7 +55,9 @@ class AuthController extends BaseController
             );
             return $this->response->setJsonContent(['message' => 'Logged out']);
         }
-        return $this->response->setStatusCode(400, 'Bad Request')
-            ->setJsonContent(['error' => 'Invalid token']);
+        return $this->dispatcher->forward([
+            'controller' => 'error',
+            'action' => 'unauthorized'
+        ]);
     }
 }
