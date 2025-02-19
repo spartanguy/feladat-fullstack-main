@@ -14,7 +14,7 @@
             <Button @click="openModal" intent="secondary">+ Új Felhasználó</Button>
           </div>
         </div>
-        <div class="overflow-x-auto max-h-[550px] overflow-y-auto">
+        <div class="overflow-x-auto max-h-[550px] overflow-y-auto" :style="{ maxHeight: screenHeight + 'px'}">
           <table class="shadow min-w-full">
             <thead>
               <tr class="bg-gray-200">
@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import Pagination from '@/components/pagination.vue';
 import Search_form from '@/components/search_form.vue';
 import Button from '@/components/button.vue';
@@ -54,10 +54,21 @@ import router from '@/router';
 
 onMounted(async () => {
     users.value = await fetchUsers(localStorage.getItem('authToken'));  
+    window.addEventListener('resize', updateScreenSize);
 });
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateScreenSize);
+});
+
+const updateScreenSize = () => {
+  screenHeight.value = window.innerHeight-240;
+  console.log(screenHeight.value);
+};
 
 const users = ref([]);
 const searchTerm = ref('');
+const screenHeight = ref(window.innerHeight-240);
 
 const handleSearch = (search) => {
     searchTerm.value = search;
