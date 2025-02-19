@@ -44,11 +44,11 @@
                 <span>Felhasználók</span>
               </button>
               <label v-if="pRoot && pUser" class="flex items-center space-x-2 ml-8">
-                <input type="checkbox" v-model="permissions.read" />
+                <input type="checkbox" v-model="user.permissions.read" />
                 <span>Felhasználók olvasása</span>
               </label>
               <label v-if="pRoot && pUser" class="flex items-center space-x-2 ml-8">
-                <input type="checkbox" v-model="permissions.write" />
+                <input type="checkbox" v-model="user.permissions.write" />
                 <span>Felhasználók írása</span>
               </label>
             </div>
@@ -68,7 +68,7 @@
 import { reactive, watch, ref } from 'vue';
 import Button from './button.vue';
 import SelectSwitch from './selectSwitch.vue';
-import { deleteUser } from '@/services/api';
+import { deleteUser, editUser } from '@/services/api';
 
 const props = defineProps({
   isOpen: Boolean,
@@ -81,26 +81,24 @@ const user = reactive({
   deleted: false,
   password: '',
   confirmPassword: '',
+  permissions: {
+    read: false,
+    write: false,
+  }
 });
 
 const pRoot = ref(true);
 const pUser = ref(true);
 
-const permissions = reactive({
-  read: false,
-  write: false,
-});
-
 watch(() => props.data, (newData) => {
-  console.log(newData);
   if (newData) {
     user.name = newData.name || '';
     user.email = newData.email || '';
     user.deleted = newData.deleted || false;
     user.password = '';
     user.confirmPassword = '';
-    permissions.read = newData.permissions.includes('user.read') || false,
-    permissions.write = newData.permissions.includes('user.write') || false
+    user.permissions.read = newData.permissions.includes('user.read') || false,
+    user.permissions.write = newData.permissions.includes('user.write') || false
   }
 }, { immediate: true });
 
@@ -113,8 +111,19 @@ const closeModal = () => {
 };
 
 const onSave = () => {
-  console.log(user);
-  console.log(permissions);
+  let permPack = [];
+  if (user.permissions.read == true) {
+    permPack.push('user.read')
+  }
+  if (user.permissions.write == true) {
+    permPack.push('user.write')
+  }
+  console.log(permPack);
+  
+  editUser(props.data.user_id, user.name, user.password, user.email, permPack, localStorage.getItem('authToken'));
+  if (user.deleted == true) {
+    delUser();
+  }
 }
 
 const delUser = () => {

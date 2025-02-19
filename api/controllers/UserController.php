@@ -33,16 +33,30 @@ class UserController extends BaseController
             $name = $data->name;
             $password = $this->security->hash($data->password);
             $email = $data->email;
-
+            $permissions = $data->permissions;
             $db = $this->getDI()->get('db');
-            $db->execute(
-                "INSERT INTO users (name, password, email) VALUES (:name, :password, :email)",
+            $userId = $db->fetchColumn(
+                "INSERT INTO users (name, email, password) VALUES (:name, :email, :password) RETURNING id",
                 [
                     'name' => $name,
-                    'password' => $password,
-                    'email'    => $email,
+                    'email' => $email,
+                    'password' => $password
                 ]
             );
+            foreach ($permissions as $key => $value) {
+                $permId = $db->query("SELECT id FROM permissions WHERE code = :val", ["val" => $value]);
+                $perm = $permId->fetch();
+                
+                if ($perm) { 
+                    $db->execute(
+                        "INSERT INTO user_permissions (user_id, permission_id) VALUES (:user_id, :permission_id)", 
+                        [
+                            'user_id' => $userId,
+                            'permission_id' => $perm->id
+                        ]
+                    );
+                }
+            }
             return $this->response->setJsonContent(['message' => 'User created']);
         } 
     }
@@ -63,7 +77,6 @@ class UserController extends BaseController
             GROUP BY u.id;", ['user_id' => $id]);
             $user = $result->fetch();
             if ($user) {
-                var_dump($user);
                 $permissions = explode(',', trim($user->permissions, '{}'));
                 $user->permissions = array_map('trim', $permissions);
                 return $this->response->setJsonContent($user);
@@ -75,26 +88,82 @@ class UserController extends BaseController
 
     public function updateAction($id)
     {
-        if($this->routeGuard('user.write')){
-
+        if ($this->routeGuard('user.write')) {
             $data = $this->request->getJsonRawBody();
             $name = $data->name;
             $password = $this->security->hash($data->password);
             $email = $data->email;
-
+            $permissions = (array) $data->permissions;
             $db = $this->getDI()->get('db');
+
+            var_dump($permissions);
+            // 1️⃣ Felhasználó adatainak frissítése
             $db->execute(
                 "UPDATE users SET name = :name, email = :email, password = :password WHERE id = :id",
                 [
                     'name' => $name,
-                    'email'    => $email,
+                    'email' => $email,
                     'password' => $password,
-                    'id'       => $id,
+                    'id' => $id,
                 ]
             );
+
+            // 2️⃣ Meglévő jogosultságok lekérdezése
+            $existingPermissions = $db->query(
+                "SELECT p.code FROM user_permissions up 
+                JOIN permissions p ON up.permission_id = p.id 
+                WHERE up.user_id = :id",
+                ['id' => $id]
+            );
+            $ePermissions = $existingPermissions->fetchAll();
+
+            // Átalakítjuk egy egyszerű tömbbé a meglévő jogosultságokat
+            $ePermissions = array_column($ePermissions, 'code');
+            
+            // Jogosultságok összehasonlítása
+            $permissionsToAdd = array_diff($permissions, $ePermissions); 
+            $permissionsToRemove = array_diff($ePermissions, $permissions); 
+
+            
+            // 3️⃣ Új jogosultságok beszúrása
+            if (!empty($permissionsToAdd)) {
+                foreach ($permissionsToAdd as $code) {
+                    $permId = $db->query("SELECT id FROM permissions WHERE code = :code", ["code" => $code]);
+                    $perm = $permId->fetch();
+
+                    if ($perm) {
+                        $db->execute(
+                            "INSERT INTO user_permissions (user_id, permission_id) VALUES (:user_id, :permission_id)",
+                            [
+                                'user_id' => $id,
+                                'permission_id' => $perm->id
+                            ]
+                        );
+                    }
+                }
+            }
+
+            // 4️⃣ Felesleges jogosultságok törlése (JAVÍTOTT RÉSZ)
+            if (!empty($permissionsToRemove)) {
+                // Jogosultság ID-k lekérdezése
+                $placeholders = implode(',', array_fill(0, count($permissionsToRemove), '?'));
+                $permIdsQuery = $db->query(
+                    "SELECT id FROM permissions WHERE code IN ($placeholders)",
+                    array_values($permissionsToRemove)
+                );
+                $permIds = $permIdsQuery->fetchAll(\Phalcon\Db\Enum::FETCH_COLUMN);
+                if (!empty($permIds)) {
+                    $placeholders = implode(',', array_fill(0, count($permIds), '?'));
+                    $db->execute(
+                        "DELETE FROM user_permissions WHERE user_id = ? AND permission_id IN ($placeholders)",
+                        array_merge([$id], $permIds)
+                    );
+                }
+            }
             return $this->response->setJsonContent(['message' => 'User updated']);
         }
     }
+
 
     public function deleteAction($id)
     {

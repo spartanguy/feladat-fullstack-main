@@ -63,7 +63,6 @@ onUnmounted(() => {
 
 const updateScreenSize = () => {
   screenHeight.value = window.innerHeight-240;
-  console.log(screenHeight.value);
 };
 
 const users = ref([]);

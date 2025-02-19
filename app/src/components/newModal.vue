@@ -40,11 +40,11 @@
                 <span>Felhasználók</span>
               </button>
               <label v-if="pRoot && pUser" class="flex items-center space-x-2 ml-8">
-                <input type="checkbox" v-model="permissions.read" />
+                <input type="checkbox" v-model="user.permissions.read" />
                 <span>Felhasználók olvasása</span>
               </label>
               <label v-if="pRoot && pUser" class="flex items-center space-x-2 ml-8">
-                <input type="checkbox" v-model="permissions.write" />
+                <input type="checkbox" v-model="user.permissions.write" />
                 <span>Felhasználók írása</span>
               </label>
             </div>
@@ -72,13 +72,10 @@ const user = reactive({
   email: '',
   password: '',
   confirmPassword: '',
-});
-
-const permissions = reactive({
-  root: false,
-  user: false,
-  read: false,
-  write: false,
+  permissions: {
+    read: false,
+    write: false
+  }
 });
 
 defineProps({
@@ -95,7 +92,7 @@ const closeModal = () => {
 };
 
 const onSave = () => {
-  createUser(user.name,user.password,user.email,localStorage.getItem('authToken'));
+  createUser(user.name,user.password,user.email,user.permissions,localStorage.getItem('authToken'));
   closeModal();
 };
 </script>

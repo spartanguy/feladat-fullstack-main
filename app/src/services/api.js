@@ -38,9 +38,9 @@ export const login = async (name, pass) => {
   }
 };
 
-export const createUser = async (name, pass, email, token) => {
+export const createUser = async (name, pass, email, permissions, token) => {
   try {
-    const response = await apiClient.post('/user/create', { name: name, password: pass, email: email}, 
+    const response = await apiClient.post('/user/create', { name: name, password: pass, email: email, permissions: permissions}, 
       {headers: { Authorization: token }},
     );
     return response.data;
@@ -68,5 +68,16 @@ export const readUser = async (id, token) => {
     return response.data;
   } catch (error) {
     throw new Error('Hiba a felhasználó olvasásakor', error);
+  }
+};
+
+export const editUser = async (id, name, pass, email, permissions, token) => {
+  try {
+    const response = await apiClient.put(`/user/update/${id}`, { name: name, password: pass, email: email, permissions: permissions}, 
+      {headers: { Authorization: token }},
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error('Hiba a felhasználó létrehozásakor:', error);
   }
 };
