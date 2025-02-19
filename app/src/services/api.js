@@ -51,13 +51,22 @@ export const createUser = async (name, pass, email, token) => {
 
 export const deleteUser = async (id, token) => {
   try {
-    console.log(token);
-    
     const response = await apiClient.delete(`/user/delete/${id}`, {
       headers: { Authorization: token }
     });
     return response.data;
   } catch (error) {
     throw new Error('Hiba a felhasználó törlésekor', error);
+  }
+};
+
+export const readUser = async (id, token) => {
+  try {
+    const response = await apiClient.get(`/user/read/${id}`, {
+      headers: { Authorization: token }
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Hiba a felhasználó olvasásakor', error);
   }
 };

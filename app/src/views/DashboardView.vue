@@ -30,7 +30,7 @@
                 <td class="cell ">{{ user.email }}</td>
                 <td class="cell ">{{ user.permissions }}</td>
                 <td class="cell ">
-                  <Button @click="editUser(user)">Szerkesztés</Button>
+                  <Button @click="editUser(user.id)">Szerkesztés</Button>
                 </td>
               </tr>
             </tbody>
@@ -49,7 +49,7 @@ import Search_form from '@/components/search_form.vue';
 import Button from '@/components/button.vue';
 import NewModal from '@/components/newModal.vue';
 import EditModal from '@/components/editModal.vue';
-import { fetchUsers, logout } from '@/services/api';
+import { fetchUsers, logout, readUser } from '@/services/api';
 import router from '@/router';
 
 onMounted(async () => {
@@ -101,8 +101,8 @@ const closeModal = () => {
   modalOpen.value = false;
 };
 
-const editUser = (currUser) => {
-  currentUser.value = currUser;
+const editUser = async (currUser) => {
+  currentUser.value = await readUser(currUser, localStorage.getItem('authToken'));
   ModalOpen.value = true;
 }
 
@@ -115,7 +115,6 @@ const onLogout = () => {
   router.push("/");
 }
 </script>
-
 <style scoped>
 table {
   width: 100%;  

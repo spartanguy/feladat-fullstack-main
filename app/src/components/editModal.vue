@@ -8,6 +8,9 @@
           <div class="flex-1">
             <h3 class="text-lg font-semibold my-4">Adatok</h3>
             <div class="mb-3">
+              <SelectSwitch :is-active="!user.deleted" @change="changeDeleted"/>
+            </div>
+            <div class="mb-3">
               <label class="block text-sm font-medium">Név</label>
               <input v-model="user.name" type="text" placeholder="Teszt Elek" class="w-full rounded-md p-2 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2"/>
             </div>
@@ -15,6 +18,7 @@
               <label class="block text-sm font-medium">Email</label>
               <input v-model="user.email" type="email" placeholder="example@example.com" class="w-full rounded-md p-2 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2" />
             </div>
+            <h3 class="text-lg font-semibold my-4">Új Jelszó</h3>
             <div class="mb-3">
               <label class="block text-sm font-medium">Jelszó</label>
               <input v-model="user.password" type="password" class="w-full rounded-md p-2 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2" />
@@ -27,19 +31,23 @@
           <div class="md:w-1/3 md:border-l border-gray-300 md:pl-6 max-h-60 md:max-h-full overflow-y-auto">
             <h3 class="text-lg font-semibold mt-4">Jogok</h3>
             <div class="mt-2">
-              <label class="flex items-center space-x-2">
-                <input type="checkbox" v-model="permissions.root" />
+              <button @click="pRoot = !pRoot" class="flex items-center gap-1">
+                <span class="w-3.5 h-3.5 pb-1 pl-0.4 flex items-center justify-center border border-gray-500 rounded">
+                  {{ pRoot ? '-' : '+' }}
+                </span>
                 <span>Minden jog</span>
-              </label>
-              <label class="flex items-center space-x-2 ml-4">
-                <input type="checkbox" v-model="permissions.user" />
+              </button>
+              <button v-if="pRoot" @click="pUser = !pUser" class="flex items-center gap-1 ml-4">
+                <span class="w-3.5 h-3.5 pb-1 pl-0.4 flex items-center justify-center border border-gray-500 rounded">
+                  {{ pUser ? '-' : '+' }}
+                </span>
                 <span>Felhasználók</span>
-              </label>
-              <label class="flex items-center space-x-2 ml-8">
+              </button>
+              <label v-if="pRoot && pUser" class="flex items-center space-x-2 ml-8">
                 <input type="checkbox" v-model="permissions.read" />
                 <span>Felhasználók olvasása</span>
               </label>
-              <label class="flex items-center space-x-2 ml-8">
+              <label v-if="pRoot && pUser" class="flex items-center space-x-2 ml-8">
                 <input type="checkbox" v-model="permissions.write" />
                 <span>Felhasználók írása</span>
               </label>
@@ -57,37 +65,63 @@
 </template>
 
 <script setup>
-import { reactive, computed } from 'vue';
+import { reactive, watch, ref } from 'vue';
 import Button from './button.vue';
+import SelectSwitch from './selectSwitch.vue';
 import { deleteUser } from '@/services/api';
-
-const user = computed(() => ({
-  name: props.data?.name || '',
-  email: props.data?.email || '',
-  password: '',
-  confirmPassword: '',
-}));
-
-const permissions = reactive({
-  root: false,
-  user: false,
-  read: false,
-  write: false,
-});
 
 const props = defineProps({
   isOpen: Boolean,
   data: Object,
 });
 
+const user = reactive({
+  name: '',
+  email: '',
+  deleted: false,
+  password: '',
+  confirmPassword: '',
+});
+
+const pRoot = ref(true);
+const pUser = ref(true);
+
+const permissions = reactive({
+  read: false,
+  write: false,
+});
+
+watch(() => props.data, (newData) => {
+  console.log(newData);
+  if (newData) {
+    user.name = newData.name || '';
+    user.email = newData.email || '';
+    user.deleted = newData.deleted || false;
+    user.password = '';
+    user.confirmPassword = '';
+    permissions.read = newData.permissions.includes('user.read') || false,
+    permissions.write = newData.permissions.includes('user.write') || false
+  }
+}, { immediate: true });
+
 const emit = defineEmits(["close"]);
 
 const closeModal = () => {
+  pRoot.value = true;
+  pUser.value = true;
   emit("close");
 };
 
+const onSave = () => {
+  console.log(user);
+  console.log(permissions);
+}
+
 const delUser = () => {
-  deleteUser(props.data.id, localStorage.getItem('authToken'));
+  deleteUser(props.data.user_id, localStorage.getItem('authToken'));
   closeModal();
 }
+const changeDeleted = (newValue) => {
+  user.deleted = !newValue; 
+};
 </script>

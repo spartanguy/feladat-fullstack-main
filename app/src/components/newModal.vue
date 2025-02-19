@@ -27,19 +27,23 @@
           <div class="md:w-1/3 md:border-l border-gray-300 md:pl-6 max-h-60 md:max-h-full overflow-y-auto">
             <h3 class="text-lg font-semibold mt-4">Jogok</h3>
             <div class="mt-2">
-              <label class="flex items-center space-x-2">
-                <input type="checkbox" v-model="permissions.root" />
+              <button @click="pRoot = !pRoot" class="flex items-center gap-1">
+                <span class="w-3.5 h-3.5 pb-1 pl-0.4 flex items-center justify-center border border-gray-500 rounded">
+                  {{ pRoot ? '-' : '+' }}
+                </span>
                 <span>Minden jog</span>
-              </label>
-              <label class="flex items-center space-x-2 ml-4">
-                <input type="checkbox" v-model="permissions.user" />
+              </button>
+              <button v-if="pRoot" @click="pUser = !pUser" class="flex items-center gap-1 ml-4">
+                <span class="w-3.5 h-3.5 pb-1 pl-0.4 flex items-center justify-center border border-gray-500 rounded">
+                  {{ pUser ? '-' : '+' }}
+                </span>
                 <span>Felhasználók</span>
-              </label>
-              <label class="flex items-center space-x-2 ml-8">
+              </button>
+              <label v-if="pRoot && pUser" class="flex items-center space-x-2 ml-8">
                 <input type="checkbox" v-model="permissions.read" />
                 <span>Felhasználók olvasása</span>
               </label>
-              <label class="flex items-center space-x-2 ml-8">
+              <label v-if="pRoot && pUser" class="flex items-center space-x-2 ml-8">
                 <input type="checkbox" v-model="permissions.write" />
                 <span>Felhasználók írása</span>
               </label>
@@ -56,9 +60,12 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue';
+import { reactive, ref} from 'vue';
 import Button from './button.vue';
 import { createUser } from '@/services/api';
+
+const pRoot = ref(true);
+const pUser = ref(true);
 
 const user = reactive({
   name: '',
@@ -82,6 +89,8 @@ defineProps({
 const emit = defineEmits(["close"]);
 
 const closeModal = () => {
+  pRoot.value = true;
+  pUser.value = true;
   emit("close");
 };
 
