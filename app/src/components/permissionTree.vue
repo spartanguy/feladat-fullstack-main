@@ -13,11 +13,11 @@
         <span>Felhasználók</span>
       </button>
       <label v-if="pRoot && pUser" class="flex items-center ml-8">
-        <input type="checkbox"  v-model="permissionModel.read"/>
+        <input :disabled="!canWrite" type="checkbox"  v-model="permissionModel.read"/>
         <span>Felhasználók olvasása</span>
       </label>
       <label v-if="pRoot && pUser" class="flex items-center ml-8">
-        <input type="checkbox" v-model="permissionModel.write"/>
+        <input :disabled="!canWrite" type="checkbox" v-model="permissionModel.write"/>
         <span>Felhasználók írása</span>
       </label>
     </div>
@@ -31,6 +31,7 @@
   });
 
   const emit = defineEmits('update:permissions')
+  const canWrite = localStorage.getItem('permissions').includes('user.write');
 
   const permissionModel = computed({
     get: () => props.permissions,

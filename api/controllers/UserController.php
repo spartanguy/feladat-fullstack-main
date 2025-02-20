@@ -14,6 +14,7 @@ class UserController extends BaseController
                 users.id, 
                 users.name, 
                 users.email, 
+                users.password,
                 COALESCE(STRING_AGG(permissions.name, ', '), 'Nincs jogosultság') AS permissions
                 FROM users
                 LEFT JOIN user_permissions ON users.id = user_permissions.user_id
@@ -28,45 +29,45 @@ class UserController extends BaseController
     }
 
     public function createAction()
-{
-    if($this->routeGuard('user.write')){
-        $data = $this->request->getJsonRawBody();
-        $name = $data->name;
-        $password = $this->security->hash($data->password);
-        $email = $data->email;
-        $permissions = (array) $data->permissions;
-        $db = $this->getDI()->get('db');
-        
-        $userId = $db->fetchColumn(
-            "INSERT INTO users (name, email, password) VALUES (:name, :email, :password) RETURNING id",
-            [
-                'name' => $name,
-                'email' => $email,
-                'password' => $password
-            ]
-        );
-
-        if (!empty($permissions)) {
-            $placeholders = implode(',', array_fill(0, count($permissions), '?'));
-            $permIds = $db->query(
-                "SELECT id FROM permissions WHERE code IN ($placeholders)",
-                $permissions
-            )->fetchAll();
+    {
+        if($this->routeGuard('user.write')){
+            $data = $this->request->getJsonRawBody();
+            $name = $data->name;
+            $password = password_hash($data->password, PASSWORD_ARGON2I);
+            $email = $data->email;
+            $permissions = (array) $data->permissions;
+            $db = $this->getDI()->get('db');
             
-            if (!empty($permIds)) {
-                $values = [];
-                foreach ($permIds as $perm) {
-                    $values[] = "($userId, {$perm->id})";
-                }
+            $userId = $db->fetchColumn(
+                "INSERT INTO users (name, email, password) VALUES (:name, :email, :password) RETURNING id",
+                [
+                    'name' => $name,
+                    'email' => $email,
+                    'password' => $password
+                ]
+            );
+
+            if (!empty($permissions)) {
+                $placeholders = implode(',', array_fill(0, count($permissions), '?'));
+                $permIds = $db->query(
+                    "SELECT id FROM permissions WHERE code IN ($placeholders)",
+                    $permissions
+                )->fetchAll();
                 
-                $db->execute(
-                    "INSERT INTO user_permissions (user_id, permission_id) VALUES " . implode(',', $values)
-                );
+                if (!empty($permIds)) {
+                    $values = [];
+                    foreach ($permIds as $perm) {
+                        $values[] = "($userId, {$perm->id})";
+                    }
+                    
+                    $db->execute(
+                        "INSERT INTO user_permissions (user_id, permission_id) VALUES " . implode(',', $values)
+                    );
+                }
             }
-        }
-        return $this->response->setJsonContent(['message' => 'User created']);
-    } 
-}
+            return $this->response->setJsonContent(['message' => 'User created']);
+        } 
+    }
 
     public function readAction($id)
     {
@@ -103,16 +104,8 @@ class UserController extends BaseController
             $permissions = (array) $data->permissions;
             $db = $this->getDI()->get('db');
 
-            error_log($password);
-            error_log($password);
-            error_log($password);
-            error_log($password);
-            error_log($password);
-            error_log($password);
-            error_log($password);
-
             if($password != ""){
-                $password = $this->security->hash($password);
+                $password = password_hash($data->password, PASSWORD_ARGON2I);
                 $db->execute(
                     "UPDATE users SET name = :name, email = :email, password = :password WHERE id = :id",
                     [

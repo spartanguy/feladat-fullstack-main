@@ -7,7 +7,8 @@
           <slot></slot>
           <div class="mt-4 flex justify-center gap-6">
             <Button @click="emit('close')" intent="danger">Bezárás</Button>
-            <Button @click="$emit('save')" intent="secondary">Mentés</Button>
+            <Button v-if="canWrite" @click="$emit('save')" intent="secondary">Mentés</Button>
+            <Button v-if="showDelete" @click="$emit('delete')" intent="danger">Törlés</Button>
           </div>
         </div>
       </div>
@@ -16,7 +17,7 @@
   
   <script setup>
   import Button from "./button.vue";
-  
-  defineProps({ isOpen: Boolean, title: String });
-  const emit = defineEmits(["close", "save"]);
+  const canWrite = localStorage.getItem("permissions").includes("user.write");
+  defineProps({ isOpen: Boolean, title: String, showDelete: Boolean });
+  const emit = defineEmits(["close", "save", "delete"]);
   </script>

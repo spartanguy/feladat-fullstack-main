@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :isOpen="isOpen" title="Felhasználó Szerkesztése" @close="$emit('close')" @save="onSave">
+  <BaseModal :showDelete="true" :isOpen="isOpen" title="Felhasználó Szerkesztése" @close="$emit('close')" @save="onSave" @delete="onDelete">
     <UserForm v-model:user="user" :errors="errors" :showNewPass="true"/>
   </BaseModal>
 </template>
@@ -8,11 +8,11 @@
 import { reactive, ref, watch } from "vue";
 import BaseModal from "./baseModal.vue";
 import UserForm from "./userForm.vue";
-import { editUser } from "@/services/api";
+import { editUser, deleteUser } from "@/services/api";
 import { validateEditForm } from "@/utils/formValidation";
 
 const props = defineProps({ isOpen: Boolean, data: Object });
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close","update"]);
 const user = reactive({ name: "", email: "", password: "", confirmPassword: "", permissions: { read: false, write: false } }); 
 const errors = ref(null);
 
@@ -28,7 +28,7 @@ watch(() => props.data, (newData) => {
 }, { immediate: true });
 
 
-const onSave = () => {
+const onSave = async () => {
   const permissionsArray = [];
   if (user.permissions.read) permissionsArray.push('user.read');
   if (user.permissions.write) permissionsArray.push('user.write');
@@ -39,9 +39,12 @@ const onSave = () => {
   errors.value = validateEditForm(payload);
   
   if (Object.keys(errors.value).length) return;
-    console.log("lessgo");
-  
-  editUser(props.data.user_id,payload.name,payload.password,payload.email,payload.permissions,localStorage.getItem('authToken'));
+  await editUser(props.data.user_id,payload.name,payload.password,payload.email,payload.permissions,localStorage.getItem('authToken'));
   emit("close");
 };
+
+const onDelete = async () => {
+  await deleteUser(props.data.user_id, localStorage.getItem('authToken'));
+  emit("close");
+}
 </script>

@@ -17,7 +17,7 @@ const emit = defineEmits(["close"]);
 const errors = ref(null);
 
 const user = reactive({ name: "", email: "", password: "", confirmPassword: "", permissions: { read: false, write: false } });
-const onSave = () => {
+const onSave = async () => {
   const permissionsArray = [];
   if (user.permissions.read) permissionsArray.push('user.read');
   if (user.permissions.write) permissionsArray.push('user.write');
@@ -28,7 +28,7 @@ const onSave = () => {
   errors.value = validateNewUserForm(payload);
   
   if (Object.keys(errors.value).length) return;
-  createUser(payload.name,payload.password,payload.email,payload.permissions, localStorage.getItem('authToken'));
+  await createUser(payload.name,payload.password,payload.email,payload.permissions, localStorage.getItem('authToken'));
   emit("close");
 };
 </script>

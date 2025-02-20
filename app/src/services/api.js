@@ -19,6 +19,7 @@ export const fetchUsers = async (token) => {
 
 export const logout = async (token) => {
   localStorage.removeItem('authToken');
+  localStorage.removeItem('permissions');
   try {
     const response = await apiClient.get('/auth/logout', {
       headers: { Authorization: token },

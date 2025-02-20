@@ -59,6 +59,7 @@ const onLogin = async () => {
   try {
     const response = await login(name.value, pass.value);
     localStorage.setItem("authToken", response.token);
+    localStorage.setItem("permissions", response.permissions);
     router.push("/dashboard");
   } catch (error) {
     errorMessage.value = "Hibás felhasználónév vagy jelszó!", error;

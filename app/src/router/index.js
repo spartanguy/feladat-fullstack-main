@@ -13,27 +13,29 @@ const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: () => import('../views/DashboardView.vue'),
+      meta: { requiresAuth: true } 
     },
   ],
 })
 
-/*router.beforeEach( async (to, from, next) => {
+router.beforeEach((to, from, next) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
     try {
-      const sessionData = await getSessionData(); 
-      const isAuthenticated = sessionData && sessionData.userId !== undefined; 
+      const sessionData = localStorage.getItem("authToken"); 
+
+      const isAuthenticated = sessionData !== null && sessionData !== ""; 
       if (!isAuthenticated) {
-        next({ name: 'Login' });
+        next({ name: 'home' });
       } else {
         next(); 
       }
     } catch (error) {
       console.error('Hiba történt a session ellenőrzése közben:', error);
-      next({ name: 'Login' }); 
+      next({ name: 'home' });
     }
   } else {
     next(); 
   }
-});*/
+});
 
-export default router
+export default router;
