@@ -61,7 +61,7 @@ const onLogin = async () => {
     localStorage.setItem("authToken", response.token);
     router.push("/dashboard");
   } catch (error) {
-    errorMessage.value = "Hibás felhasználónév vagy jelszó!";
+    errorMessage.value = "Hibás felhasználónév vagy jelszó!", error;
   }
 };
 </script>

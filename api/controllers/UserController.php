@@ -36,6 +36,7 @@ class UserController extends BaseController
         $email = $data->email;
         $permissions = (array) $data->permissions;
         $db = $this->getDI()->get('db');
+        
         $userId = $db->fetchColumn(
             "INSERT INTO users (name, email, password) VALUES (:name, :email, :password) RETURNING id",
             [
@@ -97,19 +98,41 @@ class UserController extends BaseController
         if ($this->routeGuard('user.write')) {
             $data = $this->request->getJsonRawBody();
             $name = $data->name;
-            $password = $this->security->hash($data->password);
+            $password = $data->password;
             $email = $data->email;
             $permissions = (array) $data->permissions;
             $db = $this->getDI()->get('db');
-            $db->execute(
-                "UPDATE users SET name = :name, email = :email, password = :password WHERE id = :id",
-                [
-                    'name' => $name,
-                    'email' => $email,
-                    'password' => $password,
-                    'id' => $id,
-                ]
-            );
+
+            error_log($password);
+            error_log($password);
+            error_log($password);
+            error_log($password);
+            error_log($password);
+            error_log($password);
+            error_log($password);
+
+            if($password != ""){
+                $password = $this->security->hash($password);
+                $db->execute(
+                    "UPDATE users SET name = :name, email = :email, password = :password WHERE id = :id",
+                    [
+                        'name' => $name,
+                        'email' => $email,
+                        'password' => $password,
+                        'id' => $id,
+                    ]
+                );
+            }else{
+                $db->execute(
+                    "UPDATE users SET name = :name, email = :email WHERE id = :id",
+                    [
+                        'name' => $name,
+                        'email' => $email,
+                        'id' => $id,
+                    ]
+                );
+            }
+            
 
             $existingPermissions = $db->query(
                 "SELECT p.code FROM user_permissions up 

@@ -78,6 +78,6 @@ export const editUser = async (id, name, pass, email, permissions, token) => {
     );
     return response.data;
   } catch (error) {
-    throw new Error('Hiba a felhasználó létrehozásakor:', error);
+    throw new Error('Hiba a felhasználó szerkesztésekor:', error);
   }
 };
