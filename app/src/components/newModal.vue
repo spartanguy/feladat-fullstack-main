@@ -92,7 +92,16 @@ const closeModal = () => {
 };
 
 const onSave = () => {
-  createUser(user.name,user.password,user.email,user.permissions,localStorage.getItem('authToken'));
+  let permPack = [];
+  if (user.permissions.read == true) {
+    permPack.push('user.read')
+  }
+  if (user.permissions.write == true) {
+    permPack.push('user.write')
+  }
+  console.log(permPack);
+  
+  createUser(user.name,user.password,user.email,permPack,localStorage.getItem('authToken'));
   closeModal();
 };
 </script>

@@ -14,7 +14,7 @@ class AuthController extends BaseController
 
         $db = $this->getDI()->get('db');
         $result = $db->query(
-            "SELECT * FROM users WHERE name = :name",
+            "SELECT * FROM users WHERE name = :name AND deleted = FALSE",
             ['name' => $name]
         );
         $user = $result->fetch();

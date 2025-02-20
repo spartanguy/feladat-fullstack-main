@@ -18,6 +18,7 @@ class UserController extends BaseController
                 FROM users
                 LEFT JOIN user_permissions ON users.id = user_permissions.user_id
                 LEFT JOIN permissions ON user_permissions.permission_id = permissions.id
+                WHERE users.deleted = false
                 GROUP BY users.id, users.name, users.email
                 ORDER BY users.id;");
             $users = $result->fetchAll();
@@ -27,39 +28,44 @@ class UserController extends BaseController
     }
 
     public function createAction()
-    {
-        if($this->routeGuard('user.write')){
-            $data = $this->request->getJsonRawBody();
-            $name = $data->name;
-            $password = $this->security->hash($data->password);
-            $email = $data->email;
-            $permissions = $data->permissions;
-            $db = $this->getDI()->get('db');
-            $userId = $db->fetchColumn(
-                "INSERT INTO users (name, email, password) VALUES (:name, :email, :password) RETURNING id",
-                [
-                    'name' => $name,
-                    'email' => $email,
-                    'password' => $password
-                ]
-            );
-            foreach ($permissions as $key => $value) {
-                $permId = $db->query("SELECT id FROM permissions WHERE code = :val", ["val" => $value]);
-                $perm = $permId->fetch();
-                
-                if ($perm) { 
-                    $db->execute(
-                        "INSERT INTO user_permissions (user_id, permission_id) VALUES (:user_id, :permission_id)", 
-                        [
-                            'user_id' => $userId,
-                            'permission_id' => $perm->id
-                        ]
-                    );
+{
+    if($this->routeGuard('user.write')){
+        $data = $this->request->getJsonRawBody();
+        $name = $data->name;
+        $password = $this->security->hash($data->password);
+        $email = $data->email;
+        $permissions = (array) $data->permissions;
+        $db = $this->getDI()->get('db');
+        $userId = $db->fetchColumn(
+            "INSERT INTO users (name, email, password) VALUES (:name, :email, :password) RETURNING id",
+            [
+                'name' => $name,
+                'email' => $email,
+                'password' => $password
+            ]
+        );
+
+        if (!empty($permissions)) {
+            $placeholders = implode(',', array_fill(0, count($permissions), '?'));
+            $permIds = $db->query(
+                "SELECT id FROM permissions WHERE code IN ($placeholders)",
+                $permissions
+            )->fetchAll();
+            
+            if (!empty($permIds)) {
+                $values = [];
+                foreach ($permIds as $perm) {
+                    $values[] = "($userId, {$perm->id})";
                 }
+                
+                $db->execute(
+                    "INSERT INTO user_permissions (user_id, permission_id) VALUES " . implode(',', $values)
+                );
             }
-            return $this->response->setJsonContent(['message' => 'User created']);
-        } 
-    }
+        }
+        return $this->response->setJsonContent(['message' => 'User created']);
+    } 
+}
 
     public function readAction($id)
     {
@@ -95,9 +101,6 @@ class UserController extends BaseController
             $email = $data->email;
             $permissions = (array) $data->permissions;
             $db = $this->getDI()->get('db');
-
-            var_dump($permissions);
-            // 1️⃣ Felhasználó adatainak frissítése
             $db->execute(
                 "UPDATE users SET name = :name, email = :email, password = :password WHERE id = :id",
                 [
@@ -108,7 +111,6 @@ class UserController extends BaseController
                 ]
             );
 
-            // 2️⃣ Meglévő jogosultságok lekérdezése
             $existingPermissions = $db->query(
                 "SELECT p.code FROM user_permissions up 
                 JOIN permissions p ON up.permission_id = p.id 
@@ -117,15 +119,12 @@ class UserController extends BaseController
             );
             $ePermissions = $existingPermissions->fetchAll();
 
-            // Átalakítjuk egy egyszerű tömbbé a meglévő jogosultságokat
             $ePermissions = array_column($ePermissions, 'code');
             
-            // Jogosultságok összehasonlítása
             $permissionsToAdd = array_diff($permissions, $ePermissions); 
             $permissionsToRemove = array_diff($ePermissions, $permissions); 
 
             
-            // 3️⃣ Új jogosultságok beszúrása
             if (!empty($permissionsToAdd)) {
                 foreach ($permissionsToAdd as $code) {
                     $permId = $db->query("SELECT id FROM permissions WHERE code = :code", ["code" => $code]);
@@ -143,9 +142,7 @@ class UserController extends BaseController
                 }
             }
 
-            // 4️⃣ Felesleges jogosultságok törlése (JAVÍTOTT RÉSZ)
             if (!empty($permissionsToRemove)) {
-                // Jogosultság ID-k lekérdezése
                 $placeholders = implode(',', array_fill(0, count($permissionsToRemove), '?'));
                 $permIdsQuery = $db->query(
                     "SELECT id FROM permissions WHERE code IN ($placeholders)",

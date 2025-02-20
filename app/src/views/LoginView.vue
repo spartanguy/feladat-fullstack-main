@@ -10,7 +10,11 @@
 
     <!-- Jobb oldal -->
     <div class="w-full md:w-1/2 flex flex-col justify-center items-center">
-      <h2 class="pt-5 fancy text-7xl text-purple-800 mb-12">uniadmin</h2>
+      <h2 class="pt-5 fancy text-7xl text-purple-800 mb-8">uniadmin</h2>
+
+      <div v-if="errorMessage" class="text-red-600 text-lg mb-4 font-semibold">
+        {{ errorMessage }}
+      </div>
 
       <div class="w-full space-y-4 justify-items-center">
         <div class="relative w-70">
@@ -46,12 +50,19 @@ import { ref } from 'vue';
 
 const name = ref('');
 const pass = ref('');
+const errorMessage = ref('');
 const router = useRouter();
 
 const onLogin = async () => {
-  const response = await login(name.value,pass.value);
-  localStorage.setItem("authToken", response.token);
-  router.push("/dashboard");
+  errorMessage.value = ''; 
+
+  try {
+    const response = await login(name.value, pass.value);
+    localStorage.setItem("authToken", response.token);
+    router.push("/dashboard");
+  } catch (error) {
+    errorMessage.value = "Hibás felhasználónév vagy jelszó!";
+  }
 };
 </script>
 

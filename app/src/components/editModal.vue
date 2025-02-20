@@ -8,9 +8,6 @@
           <div class="flex-1">
             <h3 class="text-lg font-semibold my-4">Adatok</h3>
             <div class="mb-3">
-              <SelectSwitch :is-active="!user.deleted" @change="changeDeleted"/>
-            </div>
-            <div class="mb-3">
               <label class="block text-sm font-medium">Név</label>
               <input v-model="user.name" type="text" placeholder="Teszt Elek" class="w-full rounded-md p-2 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2"/>
             </div>
@@ -67,7 +64,6 @@
 <script setup>
 import { reactive, watch, ref } from 'vue';
 import Button from './button.vue';
-import SelectSwitch from './selectSwitch.vue';
 import { deleteUser, editUser } from '@/services/api';
 
 const props = defineProps({
@@ -118,7 +114,6 @@ const onSave = () => {
   if (user.permissions.write == true) {
     permPack.push('user.write')
   }
-  console.log(permPack);
   
   editUser(props.data.user_id, user.name, user.password, user.email, permPack, localStorage.getItem('authToken'));
   if (user.deleted == true) {
@@ -130,7 +125,4 @@ const delUser = () => {
   deleteUser(props.data.user_id, localStorage.getItem('authToken'));
   closeModal();
 }
-const changeDeleted = (newValue) => {
-  user.deleted = !newValue; 
-};
 </script>
