@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :isOpen="isOpen" title="Új Felhasználó" @close="$emit('close')" @save="onSave">
+  <BaseModal :isOpen="isOpen" title="Új Felhasználó" @close="onClose" @save="onSave">
     <UserForm v-model:user="user" :errors="errors" />
   </BaseModal>
 </template>
@@ -32,6 +32,23 @@ const onSave = async () => {
   errors.value = validateNewUserForm(payload);
   if (Object.keys(errors.value).length) return;
   await createUser(payload.name,payload.password,payload.email,payload.permissions, sessionStorage.getItem('authToken'));
+
+  user.name = "";
+  user.email = "";
+  user.password = "";
+  user.confirmPassword = "";
+  user.permissions.read = false;
+  user.permissions.write = false;
   emit("close");
 };
+
+const onClose = () => {
+  user.name = "";
+  user.email = "";
+  user.password = "";
+  user.confirmPassword = "";
+  user.permissions.read = false;
+  user.permissions.write = false;
+  emit("close");
+}
 </script>

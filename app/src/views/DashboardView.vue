@@ -24,7 +24,7 @@
         <!-- Felhasználói lista -->
         <div v-if="canRead" class="overflow-x-auto max-h-[550px] overflow-y-auto" :style="{ maxHeight: screenHeight + 'px'}">
           <table class="shadow min-w-full">
-            <thead>
+            <thead class="sticky top-0">
               <tr class="bg-gray-200">
                 <th class="cell w-2/8 text-left">Név</th>
                 <th class="cell w-2/8 text-left">Email</th>

@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :showDelete="true" :isOpen="isOpen" title="Felhasználó Szerkesztése" @close="$emit('close')" @save="onSave" @delete="onDelete">
+  <BaseModal :showDelete="true" :isOpen="isOpen" title="Felhasználó Szerkesztése" @close="onClose" @save="onSave" @delete="onDelete">
     <UserForm v-model:user="user" :errors="errors" :showNewPass="true"/>
   </BaseModal>
 </template>
@@ -45,12 +45,22 @@ const onSave = async () => {
   errors.value = validateEditForm(payload);
   if (Object.keys(errors.value).length) return;
   await editUser(props.data.user_id,payload.name,payload.password,payload.email,payload.permissions,sessionStorage.getItem('authToken'));
+  user.password = "";
+  user.confirmPassword ="";
   emit("close");
 };
 
 const onDelete = async () => {
   // Felhasználó törlése API hívással
   await deleteUser(props.data.user_id, sessionStorage.getItem('authToken'));
+  user.password = "";
+  user.confirmPassword ="";
+  emit("close");
+}
+
+const onClose = () => {
+  user.password = "";
+  user.confirmPassword ="";
   emit("close");
 }
 </script>
