@@ -1,7 +1,7 @@
 <template>
-  <div class="h-screen flex flex-col md:flex-row bg-gradient-to-r from-blue-200 to-purple-300">
+  <div class="h-screen flex flex-col md:flex-row bg">
     <!-- Bal oldal -->
-    <div class="w-full h-1/2 md:h-full md:w-1/2 flex flex-col justify-center bg-gradient-to-r from-purple-600 to-pink-500 text-white p-5">
+    <div class="w-full h-1/2 md:h-full md:w-1/2 flex flex-col justify-center text-white p-5">
       <h1 class="fancy text-6xl md:text-6xl lg:text-8xl max-w-lg mx-auto md:mx-0">Üdvözöljük!</h1>
       <p class="mt-5 md:mt-9 text-lg max-w-lg mx-auto md:mx-0">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam eu fermentum nisi.
@@ -9,7 +9,7 @@
     </div>
 
     <!-- Jobb oldal -->
-    <div class="w-full md:w-1/2 flex flex-col justify-center items-center">
+    <div class=" h-1/2 md:h-full w-full md:w-1/2 flex flex-col justify-center items-center overlay">
       <h2 class="pt-5 fancy text-7xl text-purple-800 mb-8">uniadmin</h2>
 
       <div v-if="errorMessage" class="text-red-600 text-lg mb-4 font-semibold">
@@ -75,5 +75,17 @@ const onLogin = async () => {
 
 .fancy {
   font-family: 'Pacifico', cursive;
+}
+
+.bg {
+  display: flex;
+  background-image: url('../../public/bg.jpeg'); 
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.overlay {
+  background: rgba(255, 255, 255, 0.4); 
 }
 </style>
