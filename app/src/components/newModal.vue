@@ -13,11 +13,13 @@ import { validateNewUserForm } from "@/utils/formValidation";
 
 defineProps({ isOpen: Boolean });
 const emit = defineEmits(["close"]);
-
+// Hibák kezelésére
 const errors = ref(null);
-
+// Felhasználói objektum (reaktív, hogy módosítások érzékelhetők legyenek)
 const user = reactive({ name: "", email: "", password: "", confirmPassword: "", permissions: { read: false, write: false } });
+
 const onSave = async () => {
+  // Jogosultságokat tömbbé alakítjuk
   const permissionsArray = [];
   if (user.permissions.read) permissionsArray.push('user.read');
   if (user.permissions.write) permissionsArray.push('user.write');
@@ -25,10 +27,11 @@ const onSave = async () => {
     ...user,
     permissions: permissionsArray
   };
+
+  // Validáció
   errors.value = validateNewUserForm(payload);
-  
   if (Object.keys(errors.value).length) return;
-  await createUser(payload.name,payload.password,payload.email,payload.permissions, localStorage.getItem('authToken'));
+  await createUser(payload.name,payload.password,payload.email,payload.permissions, sessionStorage.getItem('authToken'));
   emit("close");
 };
 </script>

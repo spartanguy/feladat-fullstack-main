@@ -53,16 +53,19 @@ const pass = ref('');
 const errorMessage = ref('');
 const router = useRouter();
 
+
+ //Sikeres bejelentkezés esetén menti a sessionStorage-ba az auth tokent és jogokat
 const onLogin = async () => {
   errorMessage.value = ''; 
 
   try {
     const response = await login(name.value, pass.value);
-    localStorage.setItem("authToken", response.token);
-    localStorage.setItem("permissions", response.permissions);
+    sessionStorage.setItem("authToken", response.token);
+    sessionStorage.setItem("permissions", response.permissions);
     router.push("/dashboard");
   } catch (error) {
     errorMessage.value = "Hibás felhasználónév vagy jelszó!", error;
+    pass.value = ""; 
   }
 };
 </script>

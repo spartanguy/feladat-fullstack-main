@@ -1,29 +1,36 @@
 <template>
-  <form class="flex" @submit.prevent="handleSubmit">
+  <form class="flex" @submit.prevent>
     <div class="flex-1 mr-4">
       <h3 class="text-lg font-semibold my-4">Adatok</h3>
       <div class="mb-3">
+        <!-- Név mező -->
         <label class="block text-sm font-medium">Név</label>
-        <div v-if="errors" class="error"> {{ errors.name }} </div>
+        <div v-if="errors?.name" class="error"> {{ errors.name }} </div>
         <input :disabled="!canWrite" v-model="userModel.name" type="text" placeholder="Teszt Elek" class="w-full rounded-md p-2 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2"/>
       </div>
+
+      <!-- Email mező -->
       <div class="mb-3">
         <label class="block text-sm font-medium">Email</label>
-        <div v-if="errors" class="error"> {{ errors.email }} </div>
+        <div v-if="errors?.email" class="error"> {{ errors.email }} </div>
         <input :disabled="!canWrite" v-model="userModel.email" type="email" placeholder="example@example.com" class="w-full rounded-md p-2 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2" />
       </div>
+
+      <!-- Jelszó mezők -->
       <h3 v-if="showNewPass && canWrite" class="text-lg font-semibold my-4">Új Jelszó</h3>
       <div v-if="canWrite" class="mb-3">
         <label class="block text-sm font-medium">Jelszó</label>
-        <div v-if="errors" class="error"> {{ errors.password }} </div>
+        <div v-if="errors?.password" class="error"> {{ errors.password }} </div>
         <input v-model="userModel.password" type="password" class="w-full rounded-md p-2 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2" />
       </div>
       <div v-if="canWrite" class="mb-3">
         <label class="block text-sm font-medium">Jelszó újra</label>
-        <div v-if="errors" class="error"> {{ errors.confirmPassword }} </div>
+        <div v-if="errors?.confirmPassword" class="error"> {{ errors.confirmPassword }} </div>
         <input v-model="userModel.confirmPassword" type="password" class="w-full rounded-md p-2 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2" />
       </div>
     </div>
+
+    <!-- Jogosultságok -->
     <div class="md:w-1/3 md:border-l border-gray-300 md:pl-6 max-h-60 md:max-h-full overflow-y-auto">
       <h3 class="text-lg font-semibold mt-4">Jogok</h3>
       <PermissionTree v-model:permissions="userModel.permissions" />
@@ -41,8 +48,10 @@ const props = defineProps({
   showNewPass: {type: Boolean, default: false}
 });
 const emit = defineEmits(['update:user']);
-const canWrite = localStorage.getItem('permissions').includes('user.write')
+//Jog localstoregből
+const canWrite = sessionStorage.getItem('permissions').includes('user.write')
 
+// Kétirányú adatkövetés
 const userModel = computed({
   get: () => props.user,
   set: (newValue) => emit('update:user', newValue)
@@ -50,7 +59,6 @@ const userModel = computed({
 </script>
 
 <style scoped>
-
 .error {
   color: red;
   font-size: 0.875rem;

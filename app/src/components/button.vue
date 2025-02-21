@@ -1,35 +1,37 @@
 <script setup>
 import { computed } from 'vue';
 
+// Props definiálása a gomb számára
 const props = defineProps({
-    disabled: Boolean,
-    as: {
+    disabled: Boolean, 
+    as: {  
         type: String,
         default: "button",
     },
-    intent: {
+    intent: { 
         type: String,
-        validator: (val) => ["primary", "secondary", "danger", "good"].includes(val),
+        validator: (val) => ["primary", "secondary", "danger"].includes(val),
         default: "primary",
     }
 });
 
+// Gomb osztályok dinamikus meghatározása
 const buttonClass = computed(() => {
     const baseClass = "rounded-lg min-h-9 px-3 py-0.5 inline-flex items-center font-normal text-base justify-center";
     const intentClasses = {
         primary: "bg-blue-500 text-white hover:bg-blue-700",
-        good: "bg-green-700 hover:bg-green-800 text-white",
         danger: "bg-red-600 hover:bg-red-700 text-white",
         secondary: "bg-cyan-500 text-white hover:bg-cyan-700",
     };
-    return `${baseClass} ${intentClasses[props.intent]}`;
+    return `${baseClass} ${intentClasses[props.intent] || ""}`; 
 });
 
 const emit = defineEmits(['click']);
 
+// Kattintás eseménykezelő
 const onClick = () => {
     if (!props.disabled) {
-        emit('click');
+        emit('click'); 
     }
 };
 </script>
@@ -39,28 +41,18 @@ const onClick = () => {
       :is="props.as" 
       :class="buttonClass"
       :disabled="disabled" 
-      @click="onClick"
-    >
-        <component 
-          v-if="props.leftIcon"
-          :is="props.leftIcon" 
-          class="w-5 h-5" 
-          :style="{ marginRight: mr }" 
-        />
+      @click="onClick">
         <slot />
-        <component 
-          v-if="props.rightIcon"
-          :is="props.rightIcon" 
-          class="w-5 h-5" 
-        />
     </component>
 </template>
 
 <style>
+/* Letiltott gomb alapstílus */
 button:disabled {
     background-color: #ccc;
 }
 
+/* Hover állapot letiltott gombnál */
 button:disabled:hover {
     background-color: darkgrey;
 }

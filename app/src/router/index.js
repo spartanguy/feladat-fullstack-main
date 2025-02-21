@@ -19,10 +19,12 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+  // Ellenőrzi, hogy az útvonal igényel-e autentikációt
   if (to.matched.some(record => record.meta.requiresAuth)) {
     try {
-      const sessionData = localStorage.getItem("authToken"); 
+      const sessionData = sessionStorage.getItem("authToken"); 
 
+      // Ha nincs authToken, akkor a felhasználót visszairányítjuk a login oldalra
       const isAuthenticated = sessionData !== null && sessionData !== ""; 
       if (!isAuthenticated) {
         next({ name: 'home' });

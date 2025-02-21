@@ -1,4 +1,5 @@
 <template>
+  <!-- Csak akkor jelenik meg, ha több mint 1 oldal van -->
   <div v-if="totalPages > 1" class="pagination-wrapper">
     <div class="pagination">
       <!-- Előző gomb -->
@@ -10,8 +11,10 @@
         Előző
       </Button>
 
-      <!-- Oldalszám -->
-      <span class="pagination-info">{{ currentPage }}. lap a {{ totalPages }} lapból</span>
+      <!-- Oldalszám információ -->
+      <span class="pagination-info">
+        {{ currentPage }}. lap a {{ totalPages }} lapból
+      </span>
 
       <!-- Következő gomb -->
       <Button
@@ -26,7 +29,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import Button from './button.vue';
 
 // Props átadása
@@ -39,28 +41,23 @@ const props = defineProps({
     type: Number,
     required: true,
   },
-
 });
 
-const emit = defineEmits(["cp"]);
+const emit = defineEmits(["update:currentPage"]); 
 
-const cp = ref(props.currentPage)
-
+// Lapozás előre
 const nextPage = () => {
-  if (cp.value < props.totalPages) {
-    cp.value += 1;
+  if (props.currentPage < props.totalPages) {
+    emit("update:currentPage", props.currentPage + 1); // V-model szerű frissítés
   }
-  emit('cp', cp.value)
 };
 
+// Lapozás vissza
 const prevPage = () => {
-  if (cp.value > 1) {
-    cp.value -= 1;
+  if (props.currentPage > 1) {
+    emit("update:currentPage", props.currentPage - 1);
   }
-  emit('cp', cp.value)
 };
-
-// Emitálás a szülő felé
 </script>
 
 <style>
