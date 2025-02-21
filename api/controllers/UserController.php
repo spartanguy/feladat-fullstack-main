@@ -1,43 +1,43 @@
 <?php
 
-use Phalcon\Mvc\Controller;
-use Phalcon\Http\Response;
-
 class UserController extends BaseController
 {
+    // Felhasználók listázása
     public function listAction()
     {
-        if($this->routeGuard('user.read')){
+        if ($this->routeGuard('user.read')) {
             $db = $this->getDI()->get('db');
             $result = $db->query(
                 "SELECT 
                 users.id, 
                 users.name, 
                 users.email, 
-                users.password,
                 COALESCE(STRING_AGG(permissions.name, ', '), 'Nincs jogosultság') AS permissions
                 FROM users
                 LEFT JOIN user_permissions ON users.id = user_permissions.user_id
                 LEFT JOIN permissions ON user_permissions.permission_id = permissions.id
                 WHERE users.deleted = false
                 GROUP BY users.id, users.name, users.email
-                ORDER BY users.id;");
+                ORDER BY users.id;"
+            );
             $users = $result->fetchAll();
-    
+
             return $this->response->setJsonContent($users);
         }
     }
 
+    // Új felhasználó létrehozása
     public function createAction()
     {
-        if($this->routeGuard('user.write')){
+        if ($this->routeGuard('user.write')) {
             $data = $this->request->getJsonRawBody();
             $name = $data->name;
             $password = password_hash($data->password, PASSWORD_ARGON2I);
             $email = $data->email;
             $permissions = (array) $data->permissions;
             $db = $this->getDI()->get('db');
-            
+
+            // Felhasználó létrehozása és az új ID lekérése
             $userId = $db->fetchColumn(
                 "INSERT INTO users (name, email, password) VALUES (:name, :email, :password) RETURNING id",
                 [
@@ -47,43 +47,49 @@ class UserController extends BaseController
                 ]
             );
 
+            // Jogosultságok hozzárendelése a felhasználóhoz
             if (!empty($permissions)) {
                 $placeholders = implode(',', array_fill(0, count($permissions), '?'));
                 $permIds = $db->query(
                     "SELECT id FROM permissions WHERE code IN ($placeholders)",
                     $permissions
                 )->fetchAll();
-                
+
                 if (!empty($permIds)) {
                     $values = [];
                     foreach ($permIds as $perm) {
                         $values[] = "($userId, {$perm->id})";
                     }
-                    
+
                     $db->execute(
                         "INSERT INTO user_permissions (user_id, permission_id) VALUES " . implode(',', $values)
                     );
                 }
             }
             return $this->response->setJsonContent(['message' => 'User created']);
-        } 
+        }
     }
 
+    // Egy adott felhasználó adatainak lekérése
     public function readAction($id)
     {
-        if($this->routeGuard('user.read')){
+        if ($this->routeGuard('user.read')) {
             $db = $this->getDI()->get('db');
-            $result = $db->query("SELECT u.id AS user_id, 
+            $result = $db->query(
+                "SELECT u.id AS user_id, 
                 u.name, 
                 u.email, 
                 u.deleted, 
                 array_agg(p.code) AS permissions
-            FROM users u
-            LEFT JOIN user_permissions up ON up.user_id = u.id
-            LEFT JOIN permissions p ON p.id = up.permission_id
-            WHERE u.id = :user_id
-            GROUP BY u.id;", ['user_id' => $id]);
+                FROM users u
+                LEFT JOIN user_permissions up ON up.user_id = u.id
+                LEFT JOIN permissions p ON p.id = up.permission_id
+                WHERE u.id = :user_id
+                GROUP BY u.id;",
+                ['user_id' => $id]
+            );
             $user = $result->fetch();
+
             if ($user) {
                 $permissions = explode(',', trim($user->permissions, '{}'));
                 $user->permissions = array_map('trim', $permissions);
@@ -94,6 +100,7 @@ class UserController extends BaseController
         }
     }
 
+    // Felhasználó adatainak frissítése
     public function updateAction($id)
     {
         if ($this->routeGuard('user.write')) {
@@ -104,7 +111,8 @@ class UserController extends BaseController
             $permissions = (array) $data->permissions;
             $db = $this->getDI()->get('db');
 
-            if($password != ""){
+            // Ha új jelszót is megadtak, akkor azt is frissítjük
+            if (!empty($password)) {
                 $password = password_hash($data->password, PASSWORD_ARGON2I);
                 $db->execute(
                     "UPDATE users SET name = :name, email = :email, password = :password WHERE id = :id",
@@ -115,7 +123,7 @@ class UserController extends BaseController
                         'id' => $id,
                     ]
                 );
-            }else{
+            } else {
                 $db->execute(
                     "UPDATE users SET name = :name, email = :email WHERE id = :id",
                     [
@@ -125,8 +133,8 @@ class UserController extends BaseController
                     ]
                 );
             }
-            
 
+            // Jelenlegi jogosultságok lekérdezése
             $existingPermissions = $db->query(
                 "SELECT p.code FROM user_permissions up 
                 JOIN permissions p ON up.permission_id = p.id 
@@ -134,13 +142,13 @@ class UserController extends BaseController
                 ['id' => $id]
             );
             $ePermissions = $existingPermissions->fetchAll();
-
             $ePermissions = array_column($ePermissions, 'code');
-            
-            $permissionsToAdd = array_diff($permissions, $ePermissions); 
-            $permissionsToRemove = array_diff($ePermissions, $permissions); 
 
-            
+            // Új jogosultságok kiválasztása
+            $permissionsToAdd = array_diff($permissions, $ePermissions);
+            $permissionsToRemove = array_diff($ePermissions, $permissions);
+
+            // Új jogosultságok hozzáadása
             if (!empty($permissionsToAdd)) {
                 foreach ($permissionsToAdd as $code) {
                     $permId = $db->query("SELECT id FROM permissions WHERE code = :code", ["code" => $code]);
@@ -158,6 +166,7 @@ class UserController extends BaseController
                 }
             }
 
+            // Régi jogosultságok törlése
             if (!empty($permissionsToRemove)) {
                 $placeholders = implode(',', array_fill(0, count($permissionsToRemove), '?'));
                 $permIdsQuery = $db->query(
@@ -165,6 +174,7 @@ class UserController extends BaseController
                     array_values($permissionsToRemove)
                 );
                 $permIds = $permIdsQuery->fetchAll(\Phalcon\Db\Enum::FETCH_COLUMN);
+
                 if (!empty($permIds)) {
                     $placeholders = implode(',', array_fill(0, count($permIds), '?'));
                     $db->execute(
@@ -173,14 +183,15 @@ class UserController extends BaseController
                     );
                 }
             }
+
             return $this->response->setJsonContent(['message' => 'User updated']);
         }
     }
 
-
+    // Felhasználó törlése (soft delete)
     public function deleteAction($id)
     {
-        if($this->routeGuard('user.write')) { 
+        if ($this->routeGuard('user.write')) { 
             $db = $this->getDI()->get('db');
             $db->execute("UPDATE users SET deleted = :deleted WHERE id = :id", ['id' => $id, 'deleted' => true]);
             return $this->response->setJsonContent(['message' => 'User deleted']);
