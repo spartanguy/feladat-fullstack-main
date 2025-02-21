@@ -65,7 +65,7 @@ import router from '@/router';
 
 // Komponens betöltésekor és eltávolításakor események kezelése
 onMounted(async () => {
-    fetchUsersList();  
+    if(canRead) fetchUsersList();  
     window.addEventListener('resize', updateScreenSize);
 });
 

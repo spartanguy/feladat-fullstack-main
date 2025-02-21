@@ -1103,9 +1103,8 @@ CREATE TABLE "public"."user_sessions" (
   "user_id" int8 NOT NULL,
   "token" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
   "expires_at" time NOT NULL,
-  CONSTRAINT "user_sessions_pkey" PRIMARY KEY ("id"),
-  CONSTRAINT "fk_user_sessions_user" FOREIGN KEY ("user_id") REFERENCES "public"."users" ("id") ON DELETE CASCADE
-);
+  CONSTRAINT "user_sessions_pkey" PRIMARY KEY ("id")
+);    
 
 -- ----------------------------
 -- Alter sequences owned by
@@ -1135,3 +1134,10 @@ ALTER TABLE "public"."user_permissions" ADD CONSTRAINT "user_permissions_pkey" P
 -- Primary Key structure for table users
 -- ----------------------------
 ALTER TABLE "public"."users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("id");
+
+-- ----------------------------
+-- Foreign Key structure for table user_permissions
+-- ----------------------------
+ALTER TABLE "public"."user_sessions" 
+ADD CONSTRAINT "fk_user_sessions_user" 
+FOREIGN KEY ("user_id") REFERENCES "public"."users" ("id") ON DELETE CASCADE;
