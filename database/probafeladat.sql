@@ -57,6 +57,9 @@ INSERT INTO "public"."permissions" VALUES (1001, 'Felhasználók olvasása', 'us
 INSERT INTO "public"."permissions" VALUES (1002, 'Felhasználók írása', 'user.write', 1000);
 INSERT INTO "public"."permissions" VALUES (1, 'Minden jog', 'root', NULL);
 INSERT INTO "public"."permissions" VALUES (1000, 'Felhasználók', 'user', 1);
+INSERT INTO "public"."permissions" VALUES (2000, 'Assetek', 'asset', 1);
+INSERT INTO "public"."permissions" VALUES (2001, 'Assetek olvasása', 'asset.read', 2000);
+INSERT INTO "public"."permissions" VALUES (2002, 'Assetek írása', 'asset.write', 2000);
 
 -- ----------------------------
 -- Table structure for user_permissions
@@ -75,6 +78,9 @@ CREATE TABLE "public"."user_permissions" (
 INSERT INTO "public"."user_permissions" VALUES (1, 1, 1000);
 INSERT INTO "public"."user_permissions" VALUES (2, 1, 1001);
 INSERT INTO "public"."user_permissions" VALUES (3, 1, 1002);
+INSERT INTO "public"."user_permissions" VALUES (4, 1, 2000);
+INSERT INTO "public"."user_permissions" VALUES (5, 1, 2001);
+INSERT INTO "public"."user_permissions" VALUES (6, 1, 2002);
 
 -- ----------------------------
 -- Table structure for users
@@ -1094,6 +1100,34 @@ INSERT INTO "public"."users" VALUES (999, 'Gladys Garcia', 'gladysgarcia1@gmail.
 INSERT INTO "public"."users" VALUES (1000, 'Tony Long', 'longtony66@mail.com', '9fbec39804426c8bf38c1a0b7ea5498d', 'f');
 INSERT INTO "public"."users" VALUES (1001, 'Troy Ellis', 'etroy@outlook.com', '7c941e9ab8be6919c9ed006d7782d1cd', 't');
 
+
+
+-- ----------------------------
+-- Table structure for assets
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."assets";
+CREATE TABLE "public"."assets" (
+  "id" serial8 NOT NULL,
+  "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+  "description" text COLLATE "pg_catalog"."default" NOT NULL,
+  "expires_at" date NOT NULL,
+  "deleted" bool NOT NULL DEFAULT false,
+  CONSTRAINT "assets_pkey" PRIMARY KEY ("id")
+)
+;
+
+-- ----------------------------
+-- Table structure for user_assets
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."user_assets";
+CREATE TABLE "public"."user_assets" (
+  "id" serial8 NOT NULL,
+  "user_id" int8 NOT NULL,
+  "asset_id" int8 NOT NULL,
+  CONSTRAINT "user_assets_pkey" PRIMARY KEY ("id")
+)
+;
+
 -- ----------------------------
 -- Creating the user_sessions table
 -- ----------------------------
@@ -1111,7 +1145,7 @@ CREATE TABLE "public"."user_sessions" (
 -- ----------------------------
 ALTER SEQUENCE "public"."user_permissions_id_seq"
 OWNED BY "public"."user_permissions"."id";
-SELECT setval('"public"."user_permissions_id_seq"', 3, true);
+SELECT setval('"public"."user_permissions_id_seq"', 6, true);
 
 -- ----------------------------
 -- Alter sequences owned by
@@ -1141,3 +1175,10 @@ ALTER TABLE "public"."users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("id");
 ALTER TABLE "public"."user_sessions" 
 ADD CONSTRAINT "fk_user_sessions_user" 
 FOREIGN KEY ("user_id") REFERENCES "public"."users" ("id") ON DELETE CASCADE;
+ALTER TABLE "public"."user_assets" 
+ADD CONSTRAINT "fk_user_assets_user" 
+FOREIGN KEY ("user_id") REFERENCES "public"."users" ("id") ON DELETE CASCADE;
+
+ALTER TABLE "public"."user_assets" 
+ADD CONSTRAINT "fk_user_assets_asset" 
+FOREIGN KEY ("asset_id") REFERENCES "public"."assets" ("id") ON DELETE CASCADE;

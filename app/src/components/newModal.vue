@@ -16,13 +16,15 @@ const emit = defineEmits(["close"]);
 // Hibák kezelésére
 const errors = ref(null);
 // Felhasználói objektum (reaktív, hogy módosítások érzékelhetők legyenek)
-const user = reactive({ name: "", email: "", password: "", confirmPassword: "", permissions: { read: false, write: false } });
+const user = reactive({ name: "", email: "", password: "", confirmPassword: "", permissions: { read: false, write: false, assetRead: false, assetWrite: false } });
 
 const onSave = async () => {
   // Jogosultságokat tömbbé alakítjuk
   const permissionsArray = [];
   if (user.permissions.read) permissionsArray.push('user.read');
   if (user.permissions.write) permissionsArray.push('user.write');
+  if (user.permissions.assetRead) permissionsArray.push('asset.read');
+  if (user.permissions.assetWrite) permissionsArray.push('asset.write');
   const payload = {
     ...user,
     permissions: permissionsArray
@@ -39,6 +41,8 @@ const onSave = async () => {
   user.confirmPassword = "";
   user.permissions.read = false;
   user.permissions.write = false;
+  user.permissions.assetRead = false;
+  user.permissions.assetWrite = false;
   emit("close");
 };
 
@@ -49,6 +53,8 @@ const onClose = () => {
   user.confirmPassword = "";
   user.permissions.read = false;
   user.permissions.write = false;
+  user.permissions.assetRead = false;
+  user.permissions.assetWrite = false;
   emit("close");
 }
 </script>
