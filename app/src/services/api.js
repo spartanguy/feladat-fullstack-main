@@ -132,3 +132,86 @@ export const editUser = async (id, name, pass, email, permissions, token) => {
     throw new Error('Hiba a felhasználó szerkesztésekor:', error);
   }
 };
+
+
+/**
+ * Assetek lekérése.
+ * @param {string} token
+ * @returns {Promise<Object[]>}
+ */
+export const fetchAssets = async (token) => {
+  try {
+    const response = await apiClient.get('/asset/list', {
+      headers: { Authorization: token },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Hiba az assetek lekérésekor:', error);
+  }
+};
+
+/**
+ * Új asset létrehozása.
+ */
+export const createAsset = async (name, description, expiresAt, token) => {
+  try {
+    const response = await apiClient.post('/asset/create', {
+      name,
+      description,
+      expires_at: expiresAt,
+    }, {
+      headers: { Authorization: token },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Hiba az asset létrehozásakor:', error);
+  }
+};
+
+/**
+ * Asset törlése.
+ */
+export const deleteAsset = async (id, token) => {
+  try {
+    const response = await apiClient.delete(`/asset/delete/${id}`, {
+      headers: { Authorization: token },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Hiba az asset törlésekor:', error);
+  }
+};
+
+/**
+ * Asset hozzárendelése userhez.
+ */
+export const assignAsset = async (assetId, userId, token) => {
+  try {
+    const response = await apiClient.post('/asset/assign', {
+      asset_id: assetId,
+      user_id: userId,
+    }, {
+      headers: { Authorization: token },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Hiba az asset hozzárendelésekor:', error);
+  }
+};
+
+/**
+ * Asset hozzárendelés törlése userről.
+ */
+export const unassignAsset = async (assetId, userId, token) => {
+  try {
+    const response = await apiClient.post('/asset/unassign', {
+      asset_id: assetId,
+      user_id: userId,
+    }, {
+      headers: { Authorization: token },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Hiba az asset hozzárendelés törlésekor:', error);
+  }
+};

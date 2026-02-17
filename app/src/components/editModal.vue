@@ -14,17 +14,19 @@ import { validateEditForm } from "@/utils/formValidation";
 const props = defineProps({ isOpen: Boolean, data: Object });
 const emit = defineEmits(["close","update"]);
 // Felhasználói objektum (reaktív, hogy módosítások érzékelhetők legyenek)
-const user = reactive({ name: "", email: "", password: "", confirmPassword: "", permissions: { read: false, write: false } }); 
+const user = reactive({ name: "", email: "", password: "", confirmPassword: "", permissions: { read: false, write: false, assetRead: false, assetWrite: false } }); 
 const errors = ref(null);
 
 // Ha a `data` prop megváltozik, frissítjük a `user` objektumot
 watch(() => props.data, (newData) => {
   if (newData) {
-    const permissionsObject = { read: false, write: false };
+    const permissionsObject = { read: false, write: false, assetRead: false, assetWrite: false };
     // Ellenőrizzük, hogy a permissions tömbként érkezik-e
     if (Array.isArray(newData.permissions)) {
       permissionsObject.read = newData.permissions.includes('user.read');
       permissionsObject.write = newData.permissions.includes('user.write');
+      permissionsObject.assetRead = newData.permissions.includes('asset.read');
+      permissionsObject.assetWrite = newData.permissions.includes('asset.write');
     }
     // Az új adatokat hozzárendeljük a meglévő `user` objektumhoz
     Object.assign(user, newData, { permissions: permissionsObject });
@@ -37,6 +39,8 @@ const onSave = async () => {
   const permissionsArray = [];
   if (user.permissions.read) permissionsArray.push('user.read');
   if (user.permissions.write) permissionsArray.push('user.write');
+  if (user.permissions.assetRead) permissionsArray.push('asset.read');
+  if (user.permissions.assetWrite) permissionsArray.push('asset.write');
   const payload = {
     ...user,
     permissions: permissionsArray
